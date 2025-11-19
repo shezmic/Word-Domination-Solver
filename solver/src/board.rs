@@ -96,16 +96,18 @@ impl Board {
     #[inline(always)]
     pub fn get_cell(&self, row: u8, col: u8) -> u8 {
         let idx = (row as usize) * BOARD_SIZE + (col as usize);
-        let block = idx / 8;
-        let offset = (idx % 8) * 7;
+        let bit_offset = idx * 7;
+        let block = bit_offset / 64;
+        let offset = bit_offset % 64;
         ((self.letters[block] >> offset) & 0b111_1111) as u8
     }
     
     #[inline(always)]
     pub fn set_cell(&mut self, row: u8, col: u8, value: u8) {
         let idx = (row as usize) * BOARD_SIZE + (col as usize);
-        let block = idx / 8;
-        let offset = (idx % 8) * 7;
+        let bit_offset = idx * 7;
+        let block = bit_offset / 64;
+        let offset = bit_offset % 64;
         
         // Clear the 7 bits first
         self.letters[block] &= !(0b111_1111u64 << offset);

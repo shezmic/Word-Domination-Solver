@@ -42,7 +42,7 @@ async fn handle_socket(socket: WebSocket, gaddag: Arc<Gaddag>) {
                                 let deserialized_board = Board::from_serialized(&SerializedBoard {
                                     letters: board.letters,
                                     bonuses: board.bonuses,
-                                });
+                                }, &gaddag);
                                 let hash = deserialized_board.hash();
                                 board_cache.insert(hash, deserialized_board);
                                 

@@ -23,6 +23,7 @@ mod api;
 use axum::Router;
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
+use tower_http::services::ServeDir;
 use tracing_subscriber;
 
 #[tokio::main]
@@ -33,7 +34,7 @@ async fn main() {
     tracing::info!("Word Domination Solver v0.1.0 - Starting server");
     
     // Try to load GADDAG dictionary, fallback to simple dictionary
-    let gaddag = match gaddag::Gaddag::load("dictionary/lexicon.gaddag") {
+    let gaddag = match gaddag::Gaddag::load("../dictionary/dictionary.gaddag") {
         Ok(g) => {
             tracing::info!("Loaded GADDAG dictionary");
             Arc::new(g)
@@ -60,13 +61,18 @@ async fn main() {
     
     tracing::info!("GADDAG loaded successfully");
     
-    // Build router
-    let app = api::create_router(gaddag)
+    // Build router with static file serving
+    let app = Router::new()
+        // API routes (WebSocket)
+        .nest("/api", api::create_router(gaddag))
+        // Serve static files from the "static" directory
+        .nest_service("/", ServeDir::new("static"))
         .layer(CorsLayer::permissive());
     
     // Start server
     let addr: std::net::SocketAddr = "0.0.0.0:3000".parse().unwrap();
     tracing::info!("Listening on {}", addr);
+    tracing::info!("Frontend available at http://localhost:3000");
     
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();

@@ -22,7 +22,7 @@ impl Board {
         SerializedBoard { letters, bonuses }
     }
     
-    pub fn from_serialized(data: &SerializedBoard) -> Self {
+    pub fn from_serialized(data: &SerializedBoard, gaddag: &crate::gaddag::Gaddag) -> Self {
         let mut board = Board::new();
         
         for (idx, (&letter, &bonus)) in data.letters.iter().zip(data.bonuses.iter()).enumerate() {
@@ -37,6 +37,16 @@ impl Board {
         
         board.active_boosters = [None; 4];
         board.update_anchors();
+        
+        // CRITICAL FIX: Recompute cross-checks for all rows
+        // This is required because we just loaded a board state and the cross-checks
+        // must be consistent with the placed tiles for move generation to work.
+        unsafe {
+            for row in 0..9 {
+                board.recompute_cross_checks_row(row, gaddag);
+            }
+        }
+        
         board
     }
 }

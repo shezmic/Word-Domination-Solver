@@ -83,7 +83,7 @@ impl GaddagBuilder {
             
             // Simple offset calculation
             let child_offset = if let Some(&first_child) = node.edges.values().next() {
-                *first_child as u32
+                first_child as u32
             } else {
                 0
             };

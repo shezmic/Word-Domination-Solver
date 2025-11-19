@@ -38,9 +38,14 @@ interface SolverState {
   setCustomPoints: (points: number[]) => void;
   setRackSize: (size: number) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  applyMove: (move: ScoredMove) => void;
+  clearBoard: () => void;
+  setRackFromText: (text: string) => void;
+  pendingAnalysis: { mode: AnalysisMode; timeBudget: number } | null;
+  reconnectTimeoutId: number | null;
 }
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000/solve';
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000/api/solve';
 
 export const useSolverStore = create<SolverState>((set, get) => ({
   board: {
@@ -63,16 +68,26 @@ export const useSolverStore = create<SolverState>((set, get) => ({
   customPoints: [0, 1, 4, 4, 2, 1, 4, 3, 4, 1, 10, 5, 2, 4, 2, 1, 4, 10, 1, 1, 1, 2, 5, 4, 8, 3, 10],
   rackSize: 7,
   theme: 'system',
+  pendingAnalysis: null,
+  reconnectTimeoutId: null,
 
   connect: () => {
-    const ws = new WebSocket(WS_URL);
-    ws.binaryType = 'arraybuffer';
+    const { ws, reconnectTimeoutId } = get();
+    if (ws) return; // Already connected or connecting
 
-    ws.onopen = () => {
+    if (reconnectTimeoutId) {
+      clearTimeout(reconnectTimeoutId);
+      set({ reconnectTimeoutId: null });
+    }
+
+    const socket = new WebSocket(WS_URL);
+    socket.binaryType = 'arraybuffer';
+
+    socket.onopen = () => {
       console.log('Connected to solver');
     };
 
-    ws.onmessage = (event) => {
+    socket.onmessage = (event) => {
       try {
         const msg = decodeServerMsg(event.data);
 
@@ -87,30 +102,56 @@ export const useSolverStore = create<SolverState>((set, get) => ({
           console.log(`Progress: ${msg.moves_evaluated} moves, best: ${msg.best_score}`);
         } else if (msg.type === 'BoardStored') {
           set({ currentBoardHash: msg.board_hash });
+
+          // Check if we have a pending analysis waiting for this hash
+          const { pendingAnalysis, ws, rack, customPoints } = get();
+          if (pendingAnalysis && ws && ws.readyState === WebSocket.OPEN) {
+            console.log('Triggering pending analysis for hash:', msg.board_hash);
+            const encoded = encodeClientMsg({
+              Analyze: {
+                board_hash: msg.board_hash,
+                rack,
+                mode: pendingAnalysis.mode,
+                time_budget_ms: BigInt(pendingAnalysis.timeBudget),
+                custom_points: customPoints,
+              }
+            });
+            ws.send(encoded);
+            set({ pendingAnalysis: null, isAnalyzing: true });
+          }
         } else if (msg.type === 'Error') {
           console.error('Server error:', msg.message);
-          set({ isAnalyzing: false });
+          set({ isAnalyzing: false, pendingAnalysis: null });
         }
       } catch (e) {
         console.error('Failed to decode message:', e);
       }
     };
 
-    ws.onerror = (error) => {
+    socket.onerror = (error) => {
       console.error('WebSocket error:', error);
     };
 
-    ws.onclose = () => {
-      console.log('Disconnected from solver');
+    socket.onclose = () => {
+      console.log('Disconnected from solver, attempting reconnect in 1s...');
       set({ ws: null });
+      const timeoutId = setTimeout(() => {
+        get().connect();
+      }, 1000);
+      set({ reconnectTimeoutId: timeoutId as unknown as number }); // setTimeout returns NodeJS.Timeout in Node, number in browser
     };
 
-    set({ ws });
+    set({ ws: socket });
   },
 
   disconnect: () => {
-    const { ws } = get();
+    const { ws, reconnectTimeoutId } = get();
+    if (reconnectTimeoutId) {
+      clearTimeout(reconnectTimeoutId);
+      set({ reconnectTimeoutId: null });
+    }
     if (ws) {
+      ws.onclose = null; // Prevent reconnect
       ws.close();
       set({ ws: null });
     }
@@ -132,10 +173,14 @@ export const useSolverStore = create<SolverState>((set, get) => ({
 
   analyze: (mode, timeBudget) => {
     const { ws, currentBoardHash, rack, board } = get();
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      console.error('Cannot analyze: WebSocket not connected');
+      return;
+    }
 
     // Helper to send analyze request
     const sendAnalyze = (hash: bigint) => {
+      console.log('Sending analyze request for hash:', hash);
       const encoded = encodeClientMsg({
         Analyze: {
           board_hash: hash,
@@ -146,26 +191,17 @@ export const useSolverStore = create<SolverState>((set, get) => ({
         }
       });
       ws.send(encoded);
+      set({ isAnalyzing: true });
     };
 
     // Update board first if needed
     if (currentBoardHash === null) {
+      console.log('Board hash is null, updating board and queueing analysis...');
       get().updateBoard(board);
-      // Wait a bit for board to be stored
-      // Ideally we should wait for BoardStored message, but for now a timeout is a simple hack
-      // Better: set a flag "pendingAnalysis" and trigger it when BoardStored arrives.
-      // But for this iteration, timeout is acceptable as per original code structure.
-      setTimeout(() => {
-        const hash = get().currentBoardHash;
-        if (hash !== null) {
-          sendAnalyze(hash);
-        }
-      }, 100);
+      set({ pendingAnalysis: { mode, timeBudget }, isAnalyzing: true });
     } else {
       sendAnalyze(currentBoardHash);
     }
-
-    set({ isAnalyzing: true });
   },
 
   cancel: () => {
@@ -174,7 +210,7 @@ export const useSolverStore = create<SolverState>((set, get) => ({
       const encoded = encodeClientMsg('Cancel');
       ws.send(encoded);
     }
-    set({ isAnalyzing: false });
+    set({ isAnalyzing: false, pendingAnalysis: null });
   },
 
   setTile: (row: number, col: number, letter: number) => {
@@ -229,4 +265,45 @@ export const useSolverStore = create<SolverState>((set, get) => ({
   },
 
   setTheme: (theme) => set({ theme }),
+
+  applyMove: (move) => {
+    const { board } = get();
+    const newBoard = { ...board };
+    newBoard.letters = [...board.letters];
+
+    // Apply each placement from the move
+    for (const [pos, tile] of move.placements) {
+      newBoard.letters[pos] = tile;
+    }
+
+    set({ board: newBoard, currentBoardHash: null });
+  },
+
+  clearBoard: () => {
+    set({
+      board: {
+        letters: Array(81).fill(0),
+        bonuses: Array(81).fill(0),
+      },
+      currentBoardHash: null,
+      rankedMoves: [],
+    });
+  },
+
+  setRackFromText: (text) => {
+    const { rackSize } = get();
+    const newRack = Array(rackSize).fill(0);
+    const upperText = text.toUpperCase();
+
+    for (let i = 0; i < Math.min(upperText.length, rackSize); i++) {
+      const char = upperText[i];
+      if (char >= 'A' && char <= 'Z') {
+        newRack[i] = char.charCodeAt(0) - 'A'.charCodeAt(0) + 1; // A=1, B=2, ..., Z=26
+      } else if (char === '?' || char === ' ' || char === '_') {
+        newRack[i] = 0; // Blank tile
+      }
+    }
+
+    set({ rack: newRack });
+  },
 }));

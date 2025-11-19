@@ -2,7 +2,8 @@ import React from 'react';
 import { useSolverStore } from './store';
 
 export const RackEditor: React.FC = () => {
-  const { rack, updateRack } = useSolverStore();
+  const { rack, updateRack, setRackFromText } = useSolverStore();
+  const [rackText, setRackText] = React.useState('');
 
   const handleTileChange = (index: number, value: string) => {
     const newRack = [...rack];
@@ -25,20 +26,47 @@ export const RackEditor: React.FC = () => {
         </div>
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Your Rack</h3>
       </div>
-      <div className="flex gap-2 flex-wrap">
-        {rack.map((tile, idx) => (
-          <div key={idx} className="relative group">
-            <input
-              type="text"
-              maxLength={1}
-              value={tile > 0 ? String.fromCharCode(tile - 1 + 65) : ''}
-              onChange={(e) => handleTileChange(idx, e.target.value)}
-              className="w-14 h-14 text-center text-2xl font-bold bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 border-2 border-amber-200 dark:border-amber-700 rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:shadow-md hover:scale-105 uppercase text-gray-800 dark:text-amber-100"
-              placeholder="·"
-            />
-            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-amber-300 dark:bg-amber-600 rounded-full opacity-70 group-hover:opacity-100 transition-opacity"></div>
-          </div>
-        ))}
+
+      {/* Text Input for Quick Entry */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Quick Entry (type letters)
+        </label>
+        <input
+          type="text"
+          value={rackText}
+          onChange={(e) => {
+            const text = e.target.value.toUpperCase();
+            setRackText(text);
+            setRackFromText(text);
+          }}
+          placeholder="Type your rack letters (e.g., HELLO)"
+          className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-800 dark:text-gray-200 font-medium uppercase"
+          maxLength={7}
+        />
+        <p className="text-xs text-gray-500 dark:text-gray-400">Use ? or space for blank tiles</p>
+      </div>
+
+      {/* Individual Tile Inputs */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Individual Tiles
+        </label>
+        <div className="flex gap-2 flex-wrap">
+          {rack.map((tile, idx) => (
+            <div key={idx} className="relative group">
+              <input
+                type="text"
+                maxLength={1}
+                value={tile > 0 ? String.fromCharCode(tile - 1 + 65) : ''}
+                onChange={(e) => handleTileChange(idx, e.target.value)}
+                className="w-14 h-14 text-center text-2xl font-bold bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 border-2 border-amber-200 dark:border-amber-700 rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:shadow-md hover:scale-105 uppercase text-gray-800 dark:text-amber-100"
+                placeholder="·"
+              />
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-amber-300 dark:bg-amber-600 rounded-full opacity-70 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,8 @@ export const MoveList: React.FC = () => {
     rankedMoves, isAnalyzing, confidence, computeTime,
     selectedCell, filterBySelected,
     sortBy, minScore, minLength,
-    setSortBy, setMinScore, setMinLength
+    setSortBy, setMinScore, setMinLength,
+    applyMove
   } = useSolverStore();
 
   // Filter and sort moves
@@ -148,10 +149,12 @@ export const MoveList: React.FC = () => {
         {filteredMoves.map((move, idx) => (
           <div
             key={idx}
+            onClick={() => applyMove(move)}
             className={`group relative overflow-hidden rounded-xl border-2 p-4 transition-all duration-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] ${idx === 0
-                ? 'bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-700 hover:shadow-md'
-                : 'bg-white dark:bg-gray-750 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm'
+              ? 'bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-700 hover:shadow-md'
+              : 'bg-white dark:bg-gray-750 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm'
               }`}
+            title="Click to apply this move to the board"
           >
             <div className="flex items-start gap-4">
               <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${idx === 0
