@@ -145,8 +145,9 @@ fn compile_gaddag(input_path: &Path, output_path: &Path) {
 
 fn main() {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let lexicon_path = PathBuf::from(&manifest_dir).join("lexicon.txt");
-    let gaddag_path = PathBuf::from(&manifest_dir).join("lexicon.gaddag");
+    let project_root = Path::new(&manifest_dir).parent().unwrap();
+    let lexicon_path = project_root.join("dictionary").join("dictionary.txt");
+    let gaddag_path = PathBuf::from(&manifest_dir).join("dictionary.gaddag");
     
     println!("cargo:rerun-if-changed={}", lexicon_path.display());
     println!("cargo:rerun-if-changed=build.rs");

@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Settings } from 'lucide-react';
 import { BoardCanvas } from './BoardCanvas';
 import { RackEditor } from './RackEditor';
 import { MoveList } from './MoveList';
@@ -48,9 +49,17 @@ function App() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-none">Word Domination Solver</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">AI-powered move analysis • v0.1.0</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">AI-powered move analysis</p>
             </div>
           </div>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
+            title="Settings"
+          >
+            <Settings size={20} />
+            <span className="hidden sm:inline font-medium">Settings</span>
+          </button>
         </div>
       </header>
 
@@ -66,7 +75,7 @@ function App() {
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <Controls onOpenSettings={() => setIsSettingsOpen(true)} />
+              <Controls />
             </div>
           </div>
 

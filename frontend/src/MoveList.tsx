@@ -49,8 +49,8 @@ export const MoveList: React.FC = () => {
             <div className="w-12 h-12 border-4 border-transparent border-b-purple-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
           </div>
         </div>
-        <p className="mt-6 text-lg font-medium text-gray-700">Analyzing position...</p>
-        <p className="mt-2 text-sm text-gray-500">Finding the best moves</p>
+        <p className="mt-6 text-lg font-medium text-gray-700 dark:text-gray-300">Analyzing position...</p>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Finding the best moves</p>
       </div>
     );
   }
@@ -58,13 +58,13 @@ export const MoveList: React.FC = () => {
   if (filteredMoves.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-12 px-6 text-center">
-        <div className="bg-gray-100 p-4 rounded-full mb-4">
+        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full mb-4">
           <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <p className="text-lg font-medium text-gray-700">No moves found</p>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-lg font-medium text-gray-700 dark:text-gray-300">No moves found</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
           {filterBySelected && selectedCell
             ? "No moves use the selected cell. Try selecting a different cell or disabling the filter."
             : "Configure the board and rack, then analyze"}
@@ -75,17 +75,17 @@ export const MoveList: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center gap-2 mb-4">
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 space-y-4">
+        <div className="flex items-center gap-2">
           <div className="bg-gradient-to-r from-green-500 to-green-600 p-2 rounded-lg">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
             Top Moves
             {filterBySelected && selectedCell && (
-              <span className="ml-2 text-sm font-normal text-gray-500">
+              <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
                 (Filtered: {String.fromCharCode(65 + selectedCell.c)}{selectedCell.r + 1})
               </span>
             )}
@@ -108,8 +108,8 @@ export const MoveList: React.FC = () => {
           <div className="flex items-center gap-2">
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              onChange={(e) => setSortBy(e.target.value as 'score' | 'length' | 'tiles')}
+              className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:border-blue-500 focus:ring-blue-500"
             >
               <option value="score">Sort by Score</option>
               <option value="length">Sort by Length</option>
@@ -149,8 +149,8 @@ export const MoveList: React.FC = () => {
           <div
             key={idx}
             className={`group relative overflow-hidden rounded-xl border-2 p-4 transition-all duration-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] ${idx === 0
-              ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-400 hover:border-yellow-500'
-              : 'bg-white border-gray-200 hover:border-blue-400'
+                ? 'bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-700 hover:shadow-md'
+                : 'bg-white dark:bg-gray-750 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm'
               }`}
           >
             <div className="flex items-start gap-4">
@@ -163,17 +163,15 @@ export const MoveList: React.FC = () => {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-1">
-                  <h4 className="text-xl font-bold text-gray-900 uppercase tracking-wide">
-                    {move.word}
-                  </h4>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">{move.word}</span>
                   {idx === 0 && (
-                    <span className="text-xs font-semibold text-yellow-700 bg-yellow-200 px-2 py-0.5 rounded-full">
+                    <span className="px-2 py-0.5 text-xs font-semibold rounded bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 shadow-sm">
                       BEST
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1 text-green-600 font-semibold">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
