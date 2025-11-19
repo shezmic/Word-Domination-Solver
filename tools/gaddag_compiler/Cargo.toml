@@ -1,0 +1,8 @@
+[package]
+name = "gaddag_compiler"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "gaddag_compiler"
+path = "src/main.rs"
