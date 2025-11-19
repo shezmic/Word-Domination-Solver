@@ -1,6 +1,11 @@
 use crate::board::{Board, BonusType};
 use crate::moves::Move;
 use crate::constants::*;
+use crate::rack::Rack;
+
+pub struct EvaluationConfig {
+    pub round: u8,
+}
 
 impl Board {
     pub fn score_move(&self, mv: &Move, points: &[i8; 27]) -> i32 {
@@ -95,4 +100,91 @@ fn apply_booster_effect(score: i32, _word: &str, booster: &crate::booster::Activ
         ActiveBooster::DoubleLetter => score, // Applied per-letter already
         ActiveBooster::OpenAnchor => score, // Affects board state, not score
     }
+}
+
+// --- Phase 2: Static Evaluation ---
+
+pub fn evaluate_move(
+    board: &Board,
+    mv: &Move,
+    rack: &Rack,
+    points: &[i8; 27],
+    config: &EvaluationConfig,
+) -> i32 {
+    let raw_score = board.score_move(mv, points);
+    
+    // 1. Leave Evaluation
+    let leave_score = calculate_leave_score(rack, mv, config.round);
+    
+    // 2. Safety Evaluation
+    let safety_penalty = calculate_safety_penalty(board, mv);
+    
+    raw_score + leave_score - safety_penalty
+}
+
+fn calculate_leave_score(rack: &Rack, mv: &Move, round: u8) -> i32 {
+    if round >= 5 {
+        return 0; // Greedy in final round
+    }
+    
+    // Determine remaining tiles
+    let mut counts = [0u8; 27];
+    for &t in rack.tiles.iter() {
+        if t > 0 { counts[t as usize] += 1; }
+    }
+    
+    // Remove placed tiles
+    for &(_, tile) in &mv.placements {
+        if counts[tile as usize] > 0 {
+            counts[tile as usize] -= 1;
+        } else if counts[0] > 0 {
+            counts[0] -= 1;
+        }
+    }
+    
+    let mut leave_val = 0;
+    for i in 0..27 {
+        leave_val += counts[i] as i32 * LEAVE_VALUES[i] as i32;
+    }
+    
+    // Round 4 discount
+    if round == 4 {
+        leave_val /= 2;
+    }
+    
+    leave_val
+}
+
+fn calculate_safety_penalty(board: &Board, mv: &Move) -> i32 {
+    let mut penalty = 0;
+    
+    // Check neighbors of placed tiles
+    for &(pos, _) in &mv.placements {
+        let row = pos / BOARD_SIZE as u8;
+        let col = pos % BOARD_SIZE as u8;
+        
+        // Check 4 directions
+        let neighbors = [
+            (row.wrapping_sub(1), col),
+            (row + 1, col),
+            (row, col.wrapping_sub(1)),
+            (row, col + 1),
+        ];
+        
+        for &(r, c) in &neighbors {
+            if r < BOARD_SIZE as u8 && c < BOARD_SIZE as u8 && !board.is_occupied(r, c) {
+                // Empty neighbor - check if it's a multiplier
+                let (bonus_type, _) = board.get_bonus(r, c);
+                match bonus_type {
+                    BonusType::TripleWord => penalty += 25,
+                    BonusType::DoubleWord => penalty += 15,
+                    BonusType::TripleLetter => penalty += 8,
+                    BonusType::DoubleLetter => penalty += 8,
+                    BonusType::None => {},
+                }
+            }
+        }
+    }
+    
+    penalty
 }

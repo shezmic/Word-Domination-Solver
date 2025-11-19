@@ -74,3 +74,35 @@ pub static LETTER_POINTS: [i8; 27] = [
     3,  // Y
     10, // Z
 ];
+
+// Leave values for static evaluation (approximate)
+// Prioritize keeping S, E, R, Blanks
+pub static LEAVE_VALUES: [i8; 27] = [
+    25, // Blank (Keep!)
+    1,  // A
+    -2, // B
+    -2, // C
+    0,  // D
+    4,  // E (Keep)
+    -2, // F
+    -2, // G
+    0,  // H
+    1,  // I
+    -3, // J
+    -3, // K
+    0,  // L
+    0,  // M
+    0,  // N
+    1,  // O
+    -2, // P
+    -6, // Q (Burn it!)
+    3,  // R (Keep)
+    8,  // S (Keep!)
+    0,  // T
+    -3, // U
+    -3, // V
+    -3, // W
+    -2, // X
+    -2, // Y
+    -2, // Z
+];

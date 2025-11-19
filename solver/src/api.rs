@@ -65,6 +65,7 @@ async fn handle_socket(socket: WebSocket, gaddag: Arc<Gaddag>) {
                                     confidence_threshold: 100.0,
                                     time_budget_ms,
                                     points: custom_points,
+                                    round: 1, // Default to round 1, or get from ClientMsg if available
                                 };
                                 
                                 // Run search (blocking)
