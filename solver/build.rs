@@ -123,7 +123,7 @@ impl GaddagBuilder {
 fn compile_gaddag(input_path: &Path, output_path: &Path) {
     println!("cargo:warning=Compiling GADDAG from {} to {}...", input_path.display(), output_path.display());
 
-    let file = File::open(input_path).expect("Failed to open lexicon file");
+    let file = File::open(input_path).expect("Failed to open dictionary file");
     let reader = BufReader::new(file);
     
     let mut builder = GaddagBuilder::new();

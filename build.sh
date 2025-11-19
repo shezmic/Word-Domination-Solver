@@ -21,17 +21,17 @@ echo "✓ Rust toolchain found: $(cargo --version)"
 echo ""
 
 # Step 1: Compile GADDAG if needed
-if [ ! -f "dictionary/lexicon.gaddag" ] || [ "$1" = "--recompile-gaddag" ]; then
+if [ ! -f "dictionary/dictionary.gaddag" ] || [ "$1" = "--recompile-gaddag" ]; then
     echo "Step 1: Compiling GADDAG dictionary..."
     echo "----------------------------------------"
-    
-    if [ ! -f "dictionary/lexicon.txt" ]; then
-        echo "ERROR: dictionary/lexicon.txt not found!"
+
+    if [ ! -f "dictionary/dictionary.txt" ]; then
+        echo "ERROR: dictionary/dictionary.txt not found!"
         exit 1
     fi
-    
+
     cargo build --release --bin gaddag_compiler
-    cargo run --release --bin gaddag_compiler dictionary/lexicon.txt dictionary/lexicon.gaddag
+    cargo run --release --bin gaddag_compiler dictionary/dictionary.txt dictionary/dictionary.gaddag
     
     echo ""
     echo "✓ GADDAG compiled successfully"

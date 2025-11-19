@@ -33,27 +33,36 @@ async fn main() {
 
     tracing::info!("Word Domination Solver v0.1.0 - Starting server");
     
-    // Try to load GADDAG dictionary, fallback to simple dictionary
-    let gaddag = match gaddag::Gaddag::load("../dictionary/dictionary.gaddag") {
+    // Try to load GADDAG dictionary from solver directory
+    let gaddag = match gaddag::Gaddag::load("dictionary.gaddag") {
         Ok(g) => {
             tracing::info!("Loaded GADDAG dictionary");
             Arc::new(g)
         },
         Err(e) => {
-            tracing::warn!("Failed to load GADDAG: {}", e);
-            tracing::info!("Attempting to load simple text dictionary");
-            
-            match dictionary::SimpleDictionary::load_from_file("dictionary/lexicon.txt") {
-                Ok(dict) => {
-                    tracing::info!("Loaded {} words from text dictionary", dict.words.len());
-                    // Create a minimal GADDAG wrapper for compatibility
-                    // For now, we'll proceed without proper GADDAG
-                    tracing::error!("Simple dictionary loaded but GADDAG interface required - exiting");
-                    return;
-                }
+            tracing::warn!("Failed to load GADDAG from solver directory: {}", e);
+            tracing::info!("Attempting to load from parent directory");
+
+            match gaddag::Gaddag::load("../dictionary/dictionary.gaddag") {
+                Ok(g) => {
+                    tracing::info!("Loaded GADDAG dictionary from parent directory");
+                    Arc::new(g)
+                },
                 Err(e2) => {
-                    tracing::error!("Failed to load text dictionary: {}", e2);
-                    return;
+                    tracing::error!("Failed to load GADDAG: {}", e2);
+                    tracing::info!("Attempting to load simple text dictionary");
+
+                    match dictionary::SimpleDictionary::load_from_file("dictionary.txt") {
+                        Ok(dict) => {
+                            tracing::info!("Loaded {} words from text dictionary", dict.words.len());
+                            tracing::error!("Simple dictionary loaded but GADDAG interface required - exiting");
+                            return;
+                        }
+                        Err(e3) => {
+                            tracing::error!("Failed to load text dictionary: {}", e3);
+                            return;
+                        }
+                    }
                 }
             }
         }

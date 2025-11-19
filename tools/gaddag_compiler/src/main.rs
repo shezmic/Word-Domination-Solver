@@ -107,15 +107,15 @@ struct GaddagHeader {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 {
-        eprintln!("Usage: {} <input_lexicon.txt> <output.gaddag>", args[0]);
+        eprintln!("Usage: {} <input_dictionary.txt> <output.gaddag>", args[0]);
         std::process::exit(1);
     }
     
     let input_path = &args[1];
     let output_path = &args[2];
     
-    println!("Reading lexicon from {}...", input_path);
-    let file = File::open(input_path).expect("Cannot open lexicon file");
+    println!("Reading dictionary from {}...", input_path);
+    let file = File::open(input_path).expect("Cannot open dictionary file");
     let reader = BufReader::new(file);
     
     let mut builder = GaddagBuilder::new();

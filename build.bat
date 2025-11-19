@@ -24,7 +24,7 @@ echo [32m✓[0m Rust toolchain found: !CARGO_VERSION!
 echo.
 
 REM Step 1: Compile GADDAG if needed
-if not exist "dictionary\lexicon.gaddag" (
+if not exist "dictionary\dictionary.gaddag" (
     goto compile_gaddag
 )
 if "%1"=="--recompile-gaddag" (
@@ -36,15 +36,15 @@ goto skip_gaddag
 echo Step 1: Compiling GADDAG dictionary...
 echo ----------------------------------------
 
-if not exist "dictionary\lexicon.txt" (
-    echo ERROR: dictionary\lexicon.txt not found!
+if not exist "dictionary\dictionary.txt" (
+    echo ERROR: dictionary\dictionary.txt not found!
     exit /b 1
 )
 
 cargo build --release --bin gaddag_compiler
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
-cargo run --release --bin gaddag_compiler dictionary\lexicon.txt dictionary\lexicon.gaddag
+cargo run --release --bin gaddag_compiler dictionary\dictionary.txt dictionary\dictionary.gaddag
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
 echo.
