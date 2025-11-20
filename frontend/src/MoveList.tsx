@@ -6,7 +6,7 @@ export const MoveList: React.FC = () => {
     rankedMoves, isAnalyzing, computeTime,
     selectedCell, filterBySelected,
     sortBy, minScore, minLength,
-    applyMove, setHoveredMove
+    applyMove, setHoveredMove, activeMove
   } = useSolverStore();
 
   // Filter and sort moves
@@ -75,17 +75,17 @@ export const MoveList: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
-      {/* Results Card (Best Move) */}
-      {filteredMoves.length > 0 && (
+      {/* Results Card - Shows Active Move */}
+      {activeMove && (
         <div className="p-6 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 z-10">
           <div className="text-center mb-4">
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Results</h2>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center">
-            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-2">Best Move:</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-2">Selected Move:</div>
             <div className="text-5xl font-black text-gray-800 dark:text-white tracking-wide mb-6">
-              {filteredMoves[0].word}
+              {activeMove.word}
             </div>
 
             <div className="flex items-center justify-center gap-12 w-full">
@@ -95,7 +95,7 @@ export const MoveList: React.FC = () => {
                   <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
-                  {filteredMoves[0].score}
+                  {activeMove.score}
                 </div>
               </div>
 
@@ -111,7 +111,7 @@ export const MoveList: React.FC = () => {
             </div>
 
             <button
-              onClick={() => applyMove(filteredMoves[0])}
+              onClick={() => applyMove(activeMove)}
               className="mt-6 w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >
               Play Move

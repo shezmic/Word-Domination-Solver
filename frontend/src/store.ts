@@ -46,6 +46,12 @@ interface SolverState {
   hoveredMove: ScoredMove | null;
   setHoveredMove: (move: ScoredMove | null) => void;
 
+  // Tactical Overlay
+  activeMove: ScoredMove | null;
+  setActiveMove: (move: ScoredMove | null) => void;
+  lockedCoordinate: number | null;
+  setLockedCoordinate: (coord: number | null) => void;
+
   // Undo support
   history: { board: Board; rack: number[] }[];
   undo: () => void;
@@ -79,7 +85,13 @@ export const useSolverStore = create<SolverState>((set, get) => ({
   hoveredMove: null,
   history: [],
 
+  // Tactical Overlay
+  activeMove: null,
+  lockedCoordinate: null,
+
   setHoveredMove: (move) => set({ hoveredMove: move }),
+  setActiveMove: (move) => set({ activeMove: move }),
+  setLockedCoordinate: (coord) => set({ lockedCoordinate: coord }),
 
   undo: () => {
     const { history } = get();
@@ -130,6 +142,7 @@ export const useSolverStore = create<SolverState>((set, get) => ({
             confidence: msg.confidence,
             computeTime: msg.compute_time_ms,
             isAnalyzing: false,
+            activeMove: msg.moves[0] || null, // Auto-select best move
           });
         } else if (msg.type === 'Progress') {
           console.log(`Progress: ${msg.moves_evaluated} moves, best: ${msg.best_score}`);
