@@ -38,55 +38,55 @@ function App() {
   }, [theme]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200 overflow-hidden">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-blue-600 dark:bg-blue-500 p-2 rounded-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-none">Word Domination Solver</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">AI-powered move analysis</p>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-none">Word Domination Solver</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">AI-powered move analysis</p>
             </div>
           </div>
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
             title="Settings"
           >
-            <Settings size={20} />
-            <span className="hidden sm:inline font-medium">Settings</span>
+            <Settings size={18} />
+            <span className="hidden sm:inline font-medium text-sm">Settings</span>
           </button>
         </div>
       </header>
 
-      <main className="flex-1 max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full items-start">
+      <main className="flex-1 max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
           {/* Left Column: Board + Controls */}
-          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-4 overflow-auto">
             {/* Board Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex justify-center">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex justify-center flex-shrink-0">
               <BoardCanvas />
             </div>
 
             {/* Controls Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-shrink-0">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
                 <RackEditor />
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
                 <Controls />
               </div>
             </div>
           </div>
 
-          {/* Right Column: Move List (Sticky & Scrollable) */}
-          <div className="lg:col-span-5 xl:col-span-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col sticky top-24 h-[calc(100vh-8rem)]">
+          {/* Right Column: Move List (Scrollable) */}
+          <div className="lg:col-span-5 xl:col-span-4 h-full">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
               <MoveList />
             </div>
           </div>
