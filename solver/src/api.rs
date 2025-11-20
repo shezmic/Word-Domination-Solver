@@ -28,16 +28,20 @@ pub async fn ws_handler(
 }
 
 async fn handle_socket(socket: WebSocket, gaddag: Arc<Gaddag>) {
+    tracing::info!("WebSocket connection established");
     let (mut sender, mut receiver) = socket.split();
     let board_cache: Arc<DashMap<u64, Board>> = Arc::new(DashMap::new());
     
     while let Some(Ok(msg)) = receiver.next().await {
+        tracing::debug!("Received WebSocket message: {:?}", msg);
         match msg {
             Message::Binary(data) => {
                 match bincode::deserialize::<ClientMsg>(&data) {
                     Ok(client_msg) => {
+                        tracing::info!("Received client message: {:?}", client_msg);
                         match client_msg {
                             ClientMsg::UpdateBoard { board } => {
+                                tracing::info!("Updating board with {} letters", board.letters.len());
                                 // Deserialize and store board
                                 let deserialized_board = Board::from_serialized(&SerializedBoard {
                                     letters: board.letters,
@@ -52,6 +56,7 @@ async fn handle_socket(socket: WebSocket, gaddag: Arc<Gaddag>) {
                                 }
                             }
                             ClientMsg::Analyze { board_hash, rack, mode, time_budget_ms, custom_points } => {
+                                tracing::info!("Analyze request: board_hash={}, rack={:?}, mode={:?}", board_hash, rack, mode);
                                 // Get board from cache or create empty
                                 let board = board_cache
                                     .get(&board_hash)

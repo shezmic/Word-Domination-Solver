@@ -3,11 +3,8 @@ import { useSolverStore } from './store';
 import type { AnalysisMode } from './types';
 
 export const Controls: React.FC = () => {
-  const { analyze, cancel, isAnalyzing, selectedCell, filterBySelected, toggleFilterBySelected, clearBoard } = useSolverStore();
+  const { analyze, cancel, isAnalyzing, clearBoard, undo, history } = useSolverStore();
   const [mode, setMode] = useState<string>('beam');
-  const [beamWidth, setBeamWidth] = useState(50);
-  const [rolloutDepth, setRolloutDepth] = useState(3);
-  const [timeBudget, setTimeBudget] = useState(5000);
 
   const handleAnalyze = () => {
     let analysisMode: AnalysisMode;
@@ -17,16 +14,16 @@ export const Controls: React.FC = () => {
         analysisMode = { type: 'greedy' };
         break;
       case 'beam':
-        analysisMode = { type: 'beam', width: beamWidth };
+        analysisMode = { type: 'beam', width: 50 };
         break;
       case 'beamMCTS':
-        analysisMode = { type: 'mcts', width: beamWidth, depth: rolloutDepth };
+        analysisMode = { type: 'mcts', width: 50, depth: 3 };
         break;
       default:
         analysisMode = { type: 'greedy' };
     }
 
-    analyze(analysisMode, timeBudget);
+    analyze(analysisMode, 5000);
   };
 
   return (
@@ -50,89 +47,8 @@ export const Controls: React.FC = () => {
           >
             <option value="greedy">⚡ Greedy (Fastest)</option>
             <option value="beam">🔍 Beam Search</option>
-            <option value="beamMCTS">🎯 Beam + MCTS (Best Quality)</option>
+            <option value="beamMCTS">🎯 Beam + MCTS (Best)</option>
           </select>
-        </div>
-
-        {(mode === 'beam' || mode === 'beamMCTS') && (
-          <div className="space-y-2 animate-in fade-in duration-200">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Beam Width
-              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-normal">({beamWidth})</span>
-            </label>
-            <input
-              type="number"
-              value={beamWidth}
-              onChange={(e) => setBeamWidth(Number(e.target.value))}
-              min={1}
-              max={100}
-              className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-800 dark:text-gray-200"
-            />
-          </div>
-        )}
-
-        {mode === 'beamMCTS' && (
-          <div className="space-y-2 animate-in fade-in duration-200">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Rollout Depth
-              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-normal">({rolloutDepth})</span>
-            </label>
-            <input
-              type="number"
-              value={rolloutDepth}
-              onChange={(e) => setRolloutDepth(Number(e.target.value))}
-              min={1}
-              max={10}
-              className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-800 dark:text-gray-200"
-            />
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Time Budget
-            <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-normal">({(timeBudget / 1000).toFixed(1)}s)</span>
-          </label>
-          <input
-            type="number"
-            value={timeBudget}
-            onChange={(e) => setTimeBudget(Number(e.target.value))}
-            min={100}
-            max={60000}
-            step={100}
-            className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-800 dark:text-gray-200"
-          />
-        </div>
-
-        {/* Targeted Solving Filter */}
-        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              Filter by Selected Cell
-            </label>
-            <button
-              onClick={toggleFilterBySelected}
-              disabled={!selectedCell}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${filterBySelected && selectedCell ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
-                } ${!selectedCell ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${filterBySelected && selectedCell ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-              />
-            </button>
-          </div>
-          {!selectedCell && (
-            <p className="text-xs text-gray-500 mt-1 ml-6">Select a cell on board to enable</p>
-          )}
-          {selectedCell && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
-              Showing moves at {String.fromCharCode(65 + selectedCell.c)}{selectedCell.r + 1}
-            </p>
-          )}
         </div>
       </div>
 
@@ -160,11 +76,25 @@ export const Controls: React.FC = () => {
         )}
       </div>
 
-      {/* Clear Board Button */}
-      <div className="pt-2">
+      {/* Undo and Clear Board Buttons */}
+      <div className="pt-2 grid grid-cols-2 gap-3">
+        <button
+          onClick={undo}
+          disabled={history.length === 0}
+          className={`px-4 py-2.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg shadow-sm border border-gray-300 dark:border-gray-600 transition-all duration-200 flex items-center justify-center gap-2 ${history.length === 0
+            ? 'opacity-50 cursor-not-allowed'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]'
+            }`}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          </svg>
+          Undo
+        </button>
+
         <button
           onClick={clearBoard}
-          className="w-full px-6 py-2.5 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md hover:from-gray-600 hover:to-gray-700 transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
+          className="px-4 py-2.5 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md hover:from-gray-600 hover:to-gray-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

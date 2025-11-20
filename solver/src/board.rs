@@ -154,7 +154,10 @@ impl Board {
         hasher.finish()
     }
     
-    pub fn play_move(&mut self, mv: &crate::moves::Move) {
+    pub fn play_move(&mut self, mv: &crate::moves::Move, gaddag: &crate::gaddag::Gaddag) {
+        let mut affected_rows = std::collections::HashSet::new();
+        let mut affected_cols = std::collections::HashSet::new();
+        
         for &(pos, tile) in &mv.placements {
             let row = pos / crate::constants::BOARD_SIZE as u8;
             let col = pos % crate::constants::BOARD_SIZE as u8;
@@ -162,10 +165,30 @@ impl Board {
             // Set cell with occupied flag (bit 6)
             let value = tile | 0b100_0000;
             self.set_cell(row, col, value);
+            
+            // Track affected rows and cols
+            affected_rows.insert(row);
+            if row > 0 { affected_rows.insert(row - 1); }
+            if row < (crate::constants::BOARD_SIZE - 1) as u8 { affected_rows.insert(row + 1); }
+            
+            affected_cols.insert(col);
+            if col > 0 { affected_cols.insert(col - 1); }
+            if col < (crate::constants::BOARD_SIZE - 1) as u8 { affected_cols.insert(col + 1); }
         }
         
         // Update anchors after placing tiles
         self.update_anchors();
+        
+        // CRITICAL FIX: Recompute cross-checks for affected rows and columns
+        // This ensures that subsequent moves validate against the newly placed tiles
+        unsafe {
+            for &row in &affected_rows {
+                self.recompute_cross_checks_row(row, gaddag);
+            }
+            for &col in &affected_cols {
+                self.recompute_cross_checks_col(col, gaddag);
+            }
+        }
     }
     
     
@@ -291,6 +314,38 @@ impl Board {
             }
         }
     }
+    
+    // Recompute vertical cross-checks for a specific column
+    // This validates letters that can be placed when playing horizontal words
+    #[target_feature(enable = "avx2")]
+    pub unsafe fn recompute_cross_checks_col(&mut self, col: u8, gaddag: &crate::gaddag::Gaddag) {
+        // For each row in this column
+        for row in 0..BOARD_SIZE {
+            let pos = row * BOARD_SIZE + col as usize;
+            
+            // Only compute for empty cells
+            if !self.is_occupied(row as u8, col) {
+                self.cross_checks_v[pos] = self.compute_cross_check_mask(pos as u8, false, gaddag);
+            } else {
+                // Occupied cells have no valid letters
+                self.cross_checks_v[pos] = 0;
+            }
+        }
+    }
+    
+    // Recompute all cross-checks for the entire board
+    // This should be called when loading a board state or after major changes
+    pub fn recompute_all_cross_checks(&mut self, gaddag: &crate::gaddag::Gaddag) {
+        unsafe {
+            for row in 0..BOARD_SIZE as u8 {
+                self.recompute_cross_checks_row(row, gaddag);
+            }
+            for col in 0..BOARD_SIZE as u8 {
+                self.recompute_cross_checks_col(col, gaddag);
+            }
+        }
+    }
+
     
     // Compute cross-check mask for a specific position
     pub fn compute_cross_check_mask(&self, pos: u8, horizontal: bool, gaddag: &crate::gaddag::Gaddag) -> u32 {

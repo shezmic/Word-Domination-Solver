@@ -1,6 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useSolverStore } from './store';
-import { ScoredMove } from './types';
 
 const CELL_SIZE = 40;
 const BOARD_SIZE = 9;
@@ -8,8 +7,7 @@ const CANVAS_SIZE = CELL_SIZE * BOARD_SIZE;
 
 export const BoardCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { board, rankedMoves, setTile, typingDirection, toggleTypingDirection, selectedCell, setSelectedCell } = useSolverStore();
-  const [hoveredMove] = useState<ScoredMove | null>(null);
+  const { board, rankedMoves, setTile, typingDirection, toggleTypingDirection, selectedCell, setSelectedCell, hoveredMove, customPoints } = useSolverStore();
 
   // Draw board
   useEffect(() => {
@@ -60,19 +58,48 @@ export const BoardCanvas: React.FC = () => {
         // Draw letter
         const letter = board.letters[idx];
         if (letter > 0) {
-          // Tile background
-          ctx.fillStyle = '#fef3c7'; // amber-100
+          // Tile background - Light Beige/Wood color to match reference "T, E, S, T" tiles
+          // Reference image shows a light beige/orange tint for tiles.
+          // Let's use a color similar to the reference: #F3D299 or similar.
+          // Actually, looking at the reference "T E S T", they are light beige.
+          // The user also mentioned "current green color" in previous prompts, but now says "copy that design".
+          // The reference design has beige tiles for the placed word "TEST".
+          // The "Results" card has "TEST" in dark text.
+          // The board has "2W", "3L" etc.
+          // The user's image 1 shows "TEST" on board with beige tiles.
+          // So I will switch to beige tiles.
+
+          ctx.fillStyle = '#e8c39e'; // Beige/Wood color
           ctx.beginPath();
-          ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, 4);
+          // Add shadow for 3D effect
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+          ctx.shadowBlur = 2;
+          ctx.shadowOffsetY = 2;
+          ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, 6);
           ctx.fill();
 
-          // Tile text
-          ctx.fillStyle = '#1f2937'; // gray-800
-          ctx.font = 'bold 20px Inter, sans-serif';
+          // Reset shadow
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetY = 0;
+
+          // Tile text - Dark Brown/Black for contrast
+          ctx.fillStyle = '#3f2e18'; // Dark brown
+          ctx.font = 'bold 22px Inter, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           const char = String.fromCharCode('A'.charCodeAt(0) + letter - 1);
-          ctx.fillText(char, x + CELL_SIZE / 2, y + CELL_SIZE / 2 + 1);
+          // Adjust y slightly for visual centering with subscript
+          ctx.fillText(char, x + CELL_SIZE / 2, y + CELL_SIZE / 2 - 2);
+
+          // Tile point value (subscript) - Dark Brown/Black
+          const points = customPoints[letter];
+          ctx.font = 'bold 10px Inter, sans-serif';
+          ctx.fillStyle = '#3f2e18';
+          // Position in bottom right
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(points.toString(), x + CELL_SIZE - 5, y + CELL_SIZE - 4);
         }
       }
     }
@@ -103,6 +130,8 @@ export const BoardCanvas: React.FC = () => {
     }
 
     // Draw moves (top move or hovered move)
+    // If hoveredMove is present, show it. Otherwise show top move IF it's the "best" one?
+    // Actually, usually we only show the top move if nothing is hovered.
     const move = hoveredMove || (rankedMoves.length > 0 ? rankedMoves[0] : null);
     if (move) {
       for (const [pos, tile] of move.placements) {
@@ -110,24 +139,36 @@ export const BoardCanvas: React.FC = () => {
         const c = pos % BOARD_SIZE;
         const x = c * CELL_SIZE;
         const y = r * CELL_SIZE;
+        const idx = r * BOARD_SIZE + c;
 
-        // Ghost tile background
-        ctx.fillStyle = 'rgba(34, 197, 94, 0.9)'; // green-500
+        // SAFETY: Do not draw ghost tile if there is already a letter there!
+        if (board.letters[idx] > 0) continue;
+
+        // Ghost tile background - RED (User requested "shade of red")
+        ctx.fillStyle = '#ef4444'; // red-500
         ctx.beginPath();
         ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, 4);
         ctx.fill();
 
-        // Ghost tile letter
+        // Ghost tile letter - White
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 20px Inter, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const char = String.fromCharCode('A'.charCodeAt(0) + tile - 1);
-        ctx.fillText(char, x + CELL_SIZE / 2, y + CELL_SIZE / 2 + 1);
+        ctx.fillText(char, x + CELL_SIZE / 2, y + CELL_SIZE / 2);
+
+        // Ghost tile point value - White
+        const points = customPoints[tile];
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(points.toString(), x + CELL_SIZE - 3, y + CELL_SIZE - 3);
       }
     }
 
-  }, [board, rankedMoves, selectedCell, hoveredMove]);
+  }, [board, rankedMoves, selectedCell, hoveredMove, customPoints]);
 
   const handleClick = (e: React.MouseEvent) => {
     const rect = canvasRef.current?.getBoundingClientRect();

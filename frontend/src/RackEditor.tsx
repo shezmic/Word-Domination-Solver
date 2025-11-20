@@ -52,7 +52,7 @@ export const RackEditor: React.FC = () => {
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Individual Tiles
         </label>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap justify-center p-4 bg-[#8b5cf6]/10 rounded-xl border border-[#8b5cf6]/20">
           {rack.map((tile, idx) => (
             <div key={idx} className="relative group">
               <input
@@ -60,10 +60,14 @@ export const RackEditor: React.FC = () => {
                 maxLength={1}
                 value={tile > 0 ? String.fromCharCode(tile - 1 + 65) : ''}
                 onChange={(e) => handleTileChange(idx, e.target.value)}
-                className="w-14 h-14 text-center text-2xl font-bold bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 border-2 border-amber-200 dark:border-amber-700 rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:shadow-md hover:scale-105 uppercase text-gray-800 dark:text-amber-100"
+                className="w-12 h-12 text-center text-2xl font-bold bg-[#e8c39e] border-b-4 border-[#c69c72] rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:scale-105 uppercase text-[#3f2e18] placeholder-gray-400/50"
                 placeholder="·"
               />
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-amber-300 dark:bg-amber-600 rounded-full opacity-70 group-hover:opacity-100 transition-opacity"></div>
+              {tile > 0 && (
+                <span className="absolute bottom-1 right-1 text-[10px] font-bold text-[#3f2e18] pointer-events-none select-none">
+                  {useSolverStore.getState().customPoints[tile]}
+                </span>
+              )}
             </div>
           ))}
         </div>

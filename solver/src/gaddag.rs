@@ -63,20 +63,12 @@ impl Gaddag {
             return None;
         }
         
-        let size_flag = edge_mask >> 27;
-        
-        // Fast path: direct child offset calculation (only if not extended)
-        if size_flag != 0x1F {
-             // This path is only valid if we implemented the contiguous array optimization.
-             // Since the compiler currently forces extended nodes (0x1F), this branch 
-             // won't be taken for now, but we keep the structure for future optimization.
-            let child_offset = u32::from_le_bytes(node[4..8].try_into().unwrap());
-            return Some(child_offset as usize + ((letter - 1) as usize * 4)); // Assuming 4-byte offsets
-        }
+        let _size_flag = edge_mask >> 27;
         
         // Extended node: binary search in edge list
         let ext_offset = u32::from_le_bytes(node[4..8].try_into().unwrap()) as usize;
         let count = (edge_mask >> 27) as usize;
+        
         self.binary_search_edge(ext_offset, count, letter)
     }
     
@@ -121,28 +113,6 @@ impl Gaddag {
     }
     
     pub fn is_word_valid(&self, word: &str) -> bool {
-        // This is tricky with GADDAG.
-        // GADDAG stores: Rev(Prefix) + Delim + Suffix.
-        // To check "CARE", we can check path: C -> Delim -> A -> R -> E ?
-        // No, "CARE" is stored as:
-        // C -> Delim -> A -> R -> E
-        // A -> C -> Delim -> R -> E
-        // ...
-        // So checking "CARE" means checking if C -> Delim -> A -> R -> E exists?
-        // Yes, that is one valid path representing the word.
-        //
-        // So `is_word_valid` can just check: Word[0] -> Delim -> Word[1..] ?
-        // No, strictly speaking:
-        // Word "CARE".
-        // Anchor C.
-        // Path: C -> Delim -> A -> R -> E.
-        // Wait, "CARE" with anchor C (index 0).
-        // Prefix is empty.
-        // Path: C -> (Rev Prefix) -> Delim -> (Suffix A R E)
-        // C -> Delim -> A -> R -> E.
-        //
-        // So yes, `traverse(root, 'C') -> traverse(..., DELIM) -> traverse(..., 'A') ...`
-        
         if word.is_empty() { return false; }
         
         let bytes = word.as_bytes();

@@ -75,7 +75,10 @@ pub fn search(
         .collect();
     
     scored_moves.sort_by(|a, b| b.score.cmp(&a.score));
-    scored_moves.truncate(width);
+    
+    // Keep more moves for the UI, but only use 'width' for MCTS
+    let return_limit = std::cmp::max(width, 50);
+    scored_moves.truncate(return_limit);
     
     // 3. Adaptive MCTS / Iterative Deepening
     // Only proceed if we have time and candidates
@@ -85,12 +88,12 @@ pub fn search(
             // Assume each rollout takes ~5ms? 
             // If we have < 200ms elapsed, we can try.
             if start.elapsed().as_millis() < 200 {
-                if scored_moves.len() >= 3 {
-                    let scores: Vec<i32> = scored_moves.iter().take(3).map(|m| m.score as i32).collect();
+                if scored_moves.len() >= width && width > 1 {
+                    let scores: Vec<i32> = scored_moves.iter().take(width).map(|m| m.score as i32).collect();
                     let variance = population_variance(&scores);
                     
                     if variance > config.confidence_threshold {
-                        let top_moves: Vec<_> = scored_moves.iter().take(3).cloned().collect();
+                        let top_moves: Vec<_> = scored_moves.iter().take(width).cloned().collect();
                         
                         // Run parallel rollouts
                         let rollout_results: Vec<RolloutResult> = top_moves
@@ -283,7 +286,7 @@ fn monte_carlo_rollout(
     use rand::rngs::SmallRng;
     
     let mut board_after = board.clone();
-    board_after.play_move(mv);
+    board_after.play_move(mv, gaddag);
     
     let mut total_future = 0i32;
     let seed = (board.hash() ^ mv.hash()) as u64;
@@ -297,7 +300,7 @@ fn monte_carlo_rollout(
         let opp_moves = opp_gen.generate_all();
         
         if let Some(opp_move) = opp_moves.into_iter().max_by_key(|m| board_after.score_move(m, points)) {
-            board_after.play_move(&opp_move);
+            board_after.play_move(&opp_move, gaddag);
         } else {
             break;
         }
@@ -308,7 +311,7 @@ fn monte_carlo_rollout(
         
         if let Some(our_move) = our_moves.into_iter().max_by_key(|m| scoring::evaluate_move(&board_after, m, &sim_rack, points, eval_config)) {
             total_future += scoring::evaluate_move(&board_after, &our_move, &sim_rack, points, eval_config);
-            board_after.play_move(&our_move);
+            board_after.play_move(&our_move, gaddag);
         } else {
             break;
         }

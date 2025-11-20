@@ -7,6 +7,6 @@ export default defineConfig({
     port: 3001,
   },
   define: {
-    'import.meta.env.VITE_WS_URL': JSON.stringify(process.env.VITE_WS_URL || 'ws://localhost:3000/solve'),
+    'import.meta.env.VITE_WS_URL': JSON.stringify(process.env.VITE_WS_URL || 'ws://localhost:3000/api/solve'),
   },
 })

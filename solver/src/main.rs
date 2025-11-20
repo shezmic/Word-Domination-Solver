@@ -19,6 +19,12 @@ mod booster;
 mod movegen;
 mod search;
 mod api;
+#[cfg(test)]
+mod search_test;
+#[cfg(test)]
+mod cross_check_test;
+#[cfg(test)]
+mod repro_invalid;
 
 use axum::Router;
 use std::sync::Arc;
