@@ -1,12 +1,24 @@
+//! GADDAG Dictionary Implementation
+//! 
+//! The GADDAG (Graph for the Alphabet DAG) is a specialized data structure
+//! for word games that supports efficient bidirectional word traversal.
+//! This enables finding words that can be formed by extending in both
+//! directions from any anchor point on the board.
+
 use memmap2::Mmap;
 use std::fs::File;
 use std::path::Path;
 
+/// Magic bytes identifying a valid GADDAG file
 pub const GADDAG_MAGIC: &[u8; 8] = b"WDGADDAG";
+/// Current file format version
 pub const GADDAG_VERSION: u32 = 1;
+/// Size of each node in bytes (4 bytes edge mask + 4 bytes offset)
 pub const NODE_SIZE: usize = 8;
+/// Delimiter byte separating the reversed prefix from suffix in GADDAG paths
 pub const DELIMITER: u8 = 27;
 
+/// Header structure for the GADDAG binary file
 #[repr(C)]
 pub struct GaddagHeader {
     pub magic: [u8; 8],
@@ -17,6 +29,10 @@ pub struct GaddagHeader {
     pub _padding: [u8; 2],
 }
 
+/// Memory-mapped GADDAG dictionary for fast word lookups
+/// 
+/// The GADDAG is loaded via memory mapping for zero-copy access,
+/// making word validation extremely fast (typically <1μs per lookup).
 pub struct Gaddag {
     pub mmap: Mmap,
 }

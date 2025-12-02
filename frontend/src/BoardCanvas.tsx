@@ -310,6 +310,16 @@ export const BoardCanvas: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Handle Escape key globally to clear selections
+    if (e.key === 'Escape') {
+      setSelectedCell(null);
+      setLockedCoordinate(null);
+      if (rankedMoves.length > 0) {
+        setActiveMove(rankedMoves[0]);
+      }
+      return;
+    }
+    
     if (!selectedCell) return;
 
     const { r, c } = selectedCell;
@@ -428,13 +438,15 @@ export const BoardCanvas: React.FC = () => {
               onWheel={handleWheel}
               onMouseMove={handleMouseMove}
               className="cursor-pointer block"
+              role="grid"
+              aria-label="Word Domination game board - 9x9 grid. Use arrow keys to navigate, letters to place tiles."
             />
           </div>
         </div>
       </div>
 
       <p className="text-sm text-gray-500 font-medium">
-        Left-click hotspot to lock • Scroll to cycle • Right-click to unlock
+        Left-click hotspot to lock • Scroll to cycle • Right-click to unlock • Escape to clear
       </p>
 
       {/* Hotspot Legend */}

@@ -88,7 +88,22 @@ async fn main() {
     let addr: std::net::SocketAddr = "0.0.0.0:3000".parse().unwrap();
     tracing::info!("Listening on {}", addr);
     tracing::info!("Frontend available at http://localhost:3000");
+    tracing::info!("Press Ctrl+C to stop the server");
     
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    
+    // Handle graceful shutdown
+    let shutdown = async {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to install CTRL+C signal handler");
+        tracing::info!("Shutdown signal received, stopping server...");
+    };
+    
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown)
+        .await
+        .unwrap();
+    
+    tracing::info!("Server stopped.");
 }

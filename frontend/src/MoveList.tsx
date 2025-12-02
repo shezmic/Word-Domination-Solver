@@ -67,7 +67,10 @@ export const MoveList: React.FC = () => {
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
           {filterBySelected && selectedCell
             ? "No moves use the selected cell. Try selecting a different cell or disabling the filter."
-            : "Configure the board and rack, then analyze"}
+            : rankedMoves.length === 0 
+              ? "Enter your rack letters and click 'Analyze Position' to find moves."
+              : "Try adjusting the score or length filters."
+          }
         </p>
       </div>
     );

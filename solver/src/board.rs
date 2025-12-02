@@ -3,15 +3,34 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::arch::x86_64::*;
 
+/// Bonus types for board squares
+/// 
+/// Each bonus type affects scoring differently:
+/// - Letter bonuses (DL/TL) multiply the individual tile score
+/// - Word bonuses (DW/TW) multiply the entire word score
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BonusType {
+    /// No bonus on this square
     None = 0,
+    /// Double Letter - multiplies tile score by 2
     DoubleLetter = 1,
+    /// Triple Letter - multiplies tile score by 3
     TripleLetter = 2,
+    /// Double Word - multiplies word score by 2
     DoubleWord = 3,
+    /// Triple Word - multiplies word score by 3
     TripleWord = 4,
 }
 
+/// Game board representation optimized for cache efficiency
+/// 
+/// The board uses bit-packing for letters (7 bits per cell) and
+/// precomputed cross-check masks for fast move validation.
+/// 
+/// Memory layout:
+/// - `letters`: 9x64-bit blocks storing 81 cells with 7 bits each
+/// - `bonus_map`: 81 bytes, each storing bonus type (2 bits) + multiplier (6 bits)
+/// - `cross_checks_h/v`: 26-bit masks indicating valid letters for each empty cell
 #[repr(C, align(64))]
 #[derive(Clone)]
 pub struct Board {

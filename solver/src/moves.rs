@@ -35,6 +35,21 @@ impl Move {
         }
     }
     
+    /// Returns the number of tiles placed by this move
+    pub fn tiles_placed(&self) -> usize {
+        self.placements.len()
+    }
+    
+    /// Returns true if this move uses all 7 tiles (bingo)
+    pub fn is_bingo(&self) -> bool {
+        self.placements.len() >= crate::constants::RACK_SIZE
+    }
+    
+    /// Returns the starting position as a single index (0-80)
+    pub fn start_pos(&self) -> u8 {
+        self.start_row * crate::constants::BOARD_SIZE as u8 + self.start_col
+    }
+    
     pub fn hash(&self) -> u64 {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};

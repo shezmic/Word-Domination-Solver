@@ -1,11 +1,15 @@
 // Core game parameters
 pub const BOARD_SIZE: usize = 9;
 pub const RACK_SIZE: usize = 7;
+pub const BLANK_TILE: u8 = 0;  // Explicit constant for blank tile index
 pub const MATCH_ROUNDS: u8 = 5;
 pub const TURN_DURATION_SECS: u8 = 75;
 pub const LENGTH_BONUS_THRESHOLD: usize = 7;
 pub const LENGTH_BONUS_POINTS: i16 = 50;
 pub const TOTAL_TILES: u16 = 102;
+pub const CENTER_ROW: u8 = 4;  // Center of 9x9 board
+pub const CENTER_COL: u8 = 4;
+pub const CENTER_POS: u8 = CENTER_ROW * BOARD_SIZE as u8 + CENTER_COL;
 
 // TILE INDEXING SCHEME:
 // - Index 0 = Blank tile

@@ -19,6 +19,10 @@ impl Rack {
     }
     
     pub fn add_tile(&mut self, tile: u8) -> bool {
+        // Validate tile is in valid range (0-26 where 0 is blank)
+        if tile > 26 {
+            return false;
+        }
         // Try to fill an empty slot (0) first
         if let Some(slot) = self.tiles.iter_mut().find(|&&mut t| t == 0) {
             *slot = tile;
@@ -80,6 +84,16 @@ impl Rack {
     
     pub fn is_empty(&self) -> bool {
         self.tiles.iter().all(|&t| t == 0)
+    }
+    
+    /// Check if rack contains any blank tiles
+    pub fn has_blank(&self) -> bool {
+        self.tiles.iter().any(|&t| t == crate::constants::BLANK_TILE)
+    }
+    
+    /// Count the number of blank tiles in the rack
+    pub fn blank_count(&self) -> usize {
+        self.tiles.iter().filter(|&&t| t == crate::constants::BLANK_TILE).count()
     }
 }
 

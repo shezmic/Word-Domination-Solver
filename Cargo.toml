@@ -2,6 +2,19 @@
 members = ["solver", "protocol", "tools/gaddag_compiler"]
 resolver = "2"
 
+# Optimize release builds for maximum performance
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true
+panic = "abort"
+
+# Development profile with faster compile times
+[profile.dev]
+opt-level = 0
+debug = true
+
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
 bincode = "1.3"

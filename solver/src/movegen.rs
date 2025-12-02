@@ -4,6 +4,12 @@ use crate::moves::{Move, Direction};
 use crate::gaddag::{Gaddag, DELIMITER};
 use crate::constants::BOARD_SIZE;
 
+/// Move generator using GADDAG traversal
+/// 
+/// Generates all valid moves by:
+/// 1. Finding anchor squares (empty cells adjacent to occupied cells)
+/// 2. For each anchor, traversing GADDAG to find valid word placements
+/// 3. Respecting cross-check constraints from perpendicular words
 pub struct MoveGenerator<'a> {
     board: &'a Board,
     gaddag: &'a Gaddag,
@@ -16,7 +22,8 @@ impl<'a> MoveGenerator<'a> {
     }
     
     pub fn generate_all(&self) -> Vec<Move> {
-        let mut moves = Vec::with_capacity(200);
+        // Pre-allocate for typical game positions (average ~500 moves possible)
+        let mut moves = Vec::with_capacity(500);
         
         if self.board.is_empty() {
             self.generate_first_move(&mut moves);

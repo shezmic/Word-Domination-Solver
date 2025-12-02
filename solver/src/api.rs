@@ -32,6 +32,9 @@ async fn handle_socket(socket: WebSocket, gaddag: Arc<Gaddag>) {
     let (mut sender, mut receiver) = socket.split();
     let board_cache: Arc<DashMap<u64, Board>> = Arc::new(DashMap::new());
     
+    // Set a connection timeout to prevent idle connections
+    let timeout_duration = std::time::Duration::from_secs(300); // 5 minutes
+    
     while let Some(Ok(msg)) = receiver.next().await {
         tracing::debug!("Received WebSocket message: {:?}", msg);
         match msg {

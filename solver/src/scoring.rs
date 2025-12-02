@@ -2,9 +2,22 @@ use crate::board::{Board, BonusType};
 use crate::moves::Move;
 use crate::constants::*;
 use crate::rack::Rack;
+use crate::gaddag::Gaddag;
 
 pub struct EvaluationConfig {
     pub round: u8,
+}
+
+/// Validates that all cross-words formed by a move are valid dictionary words
+pub fn validate_cross_words(board: &Board, mv: &Move, gaddag: &Gaddag) -> bool {
+    for &(pos, _tile) in &mv.placements {
+        if let Some((cross_word, _positions)) = board.get_cross_word(pos, mv.direction) {
+            if cross_word.len() > 1 && !gaddag.is_word_valid(&cross_word) {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 impl Board {

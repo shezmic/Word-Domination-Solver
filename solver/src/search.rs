@@ -36,6 +36,7 @@ pub struct SearchResult {
     pub confidence: f32,
     pub compute_time_ms: u16,
     pub best_booster: Option<Booster>,
+    pub moves_evaluated: u32,  // Track how many moves were evaluated
 }
 
 pub struct RolloutResult {
@@ -127,15 +128,16 @@ pub fn search(
     let variance = population_variance(&scores);
     let confidence = 1.0 / (1.0 + variance);
     
+    let moves_evaluated = candidates.len() as u32;
+
     SearchResult {
         moves: scored_moves,
         confidence,
         compute_time_ms: start.elapsed().as_millis() as u16,
         best_booster: None,
+        moves_evaluated,
     }
-}
-
-pub fn find_best_move_with_boosters(
+}pub fn find_best_move_with_boosters(
     board: &Board,
     rack: &Rack,
     gaddag: &Gaddag,
@@ -252,6 +254,7 @@ pub fn find_best_move_with_boosters(
             confidence: base_result.confidence,
             compute_time_ms: start_total.elapsed().as_millis() as u16,
             best_booster: Some(b),
+            moves_evaluated: base_result.moves_evaluated,
         }
     } else {
         base_result

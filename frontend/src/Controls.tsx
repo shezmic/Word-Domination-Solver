@@ -3,8 +3,9 @@ import { useSolverStore } from './store';
 import type { AnalysisMode } from './types';
 
 export const Controls: React.FC = () => {
-  const { analyze, cancel, isAnalyzing, clearBoard, undo, history } = useSolverStore();
+  const { analyze, cancel, isAnalyzing, isConnected, clearBoard, undo, history } = useSolverStore();
   const [mode, setMode] = useState<string>('beam');
+  const [timeBudget, setTimeBudget] = useState<number>(5000);
 
   const handleAnalyze = () => {
     let analysisMode: AnalysisMode;
@@ -23,7 +24,7 @@ export const Controls: React.FC = () => {
         analysisMode = { type: 'greedy' };
     }
 
-    analyze(analysisMode, 5000);
+    analyze(analysisMode, timeBudget);
   };
 
   return (
@@ -50,9 +51,31 @@ export const Controls: React.FC = () => {
             <option value="beamMCTS">🎯 Beam + MCTS (Best)</option>
           </select>
         </div>
+        
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Time Budget</label>
+          <select
+            value={timeBudget}
+            onChange={(e) => setTimeBudget(parseInt(e.target.value))}
+            className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-800 dark:text-gray-200 font-medium"
+          >
+            <option value="1000">1 second (Fast)</option>
+            <option value="3000">3 seconds</option>
+            <option value="5000">5 seconds (Recommended)</option>
+            <option value="10000">10 seconds (Thorough)</option>
+          </select>
+        </div>
       </div>
 
       <div className="pt-2">
+        {/* Connection Status */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          <span className={`text-xs font-medium ${isConnected ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            {isConnected ? 'Connected' : 'Disconnected'}
+          </span>
+        </div>
+        
         {isAnalyzing ? (
           <button
             onClick={cancel}
@@ -66,12 +89,17 @@ export const Controls: React.FC = () => {
         ) : (
           <button
             onClick={handleAnalyze}
-            className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            disabled={!isConnected}
+            className={`w-full px-6 py-3 font-semibold rounded-lg shadow-md transition-all duration-200 flex items-center justify-center gap-2 ${
+              isConnected 
+                ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:shadow-lg hover:from-green-600 hover:to-green-700 transform hover:scale-[1.02] active:scale-[0.98]'
+                : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+            }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Analyze Position
+            {isConnected ? 'Analyze Position' : 'Connecting...'}
           </button>
         )}
       </div>

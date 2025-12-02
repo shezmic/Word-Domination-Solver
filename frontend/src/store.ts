@@ -6,6 +6,7 @@ interface SolverState {
   board: Board;
   rack: number[];
   isAnalyzing: boolean;
+  isConnected: boolean;  // Track WebSocket connection status
   rankedMoves: ScoredMove[];
   ws: WebSocket | null;
   currentBoardHash: bigint | null; // Changed to bigint for 64-bit hash
@@ -66,6 +67,7 @@ export const useSolverStore = create<SolverState>((set, get) => ({
   },
   rack: [0, 0, 0, 0, 0, 0, 0],
   isAnalyzing: false,
+  isConnected: false,
   rankedMoves: [],
   ws: null,
   currentBoardHash: null,
@@ -130,6 +132,7 @@ export const useSolverStore = create<SolverState>((set, get) => ({
 
     socket.onopen = () => {
       console.log('Connected to solver');
+      set({ isConnected: true });
     };
 
     socket.onmessage = (event) => {
@@ -180,7 +183,7 @@ export const useSolverStore = create<SolverState>((set, get) => ({
 
     socket.onclose = () => {
       console.log('Disconnected from solver, attempting reconnect in 1s...');
-      set({ ws: null });
+      set({ ws: null, isConnected: false });
       const timeoutId = setTimeout(() => {
         get().connect();
       }, 1000);
